@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthBot AI -                    <div class="input-suggestions mt-2">
+                        <small class="text-muted">Quick suggestions:</small>
+                        <span class="suggestion-chip" data-suggestion="What are the symptoms of flu?">Flu symptoms</span>
+                        <span class="suggestion-chip" data-suggestion="Show me diabetes research articles and links">Diabetes articles</span>
+                        <span class="suggestion-chip" data-suggestion="Find doctors in South Africa">SA Doctors</span>
+                        <span class="suggestion-chip" data-suggestion="Heart disease treatment studies online sources">Heart studies</span>
+                        <span class="suggestion-chip" data-suggestion="Emergency medical services in South Africa">SA Emergency</span>
+                        <span class="suggestion-chip" data-suggestion="Mental health resources with links">Mental health links</span>
+                    </div>Personal Health Assistant</title>
+    {% load static %}
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'health_app/css/chatbot.css' %}">
+</head>
+<body>
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <div class="sidebar-header">
+                    <div class="logo">
+                        <i class="fas fa-heartbeat text-primary"></i>
+                        <h5 class="ms-2 mb-0">HealthBot AI</h5>
+                    </div>
+                </div>
+                
+                <div class="sidebar-content">
+                    <div class="chat-history">
+                        <h6 class="text-muted mb-3">Recent Conversations</h6>
+                        <div class="history-item active">
+                            <i class="fas fa-comment-medical"></i>
+                            <span>Current Chat</span>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions mt-4">
+                        <h6 class="text-muted mb-3">Quick Actions</h6>
+                        <button class="action-btn" data-action="symptoms">
+                            <i class="fas fa-thermometer-half"></i>
+                            Check Symptoms
+                        </button>
+                        <button class="action-btn" data-action="research">
+                            <i class="fas fa-search"></i>
+                            Medical Research
+                        </button>
+                        <button class="action-btn" data-action="sa-doctors">
+                            <i class="fas fa-user-md"></i>
+                            🇿🇦 SA Doctors
+                        </button>
+                        <button class="action-btn" data-action="medications">
+                            <i class="fas fa-pills"></i>
+                            Medication Info
+                        </button>
+                        <button class="action-btn" data-action="wellness">
+                            <i class="fas fa-leaf"></i>
+                            Wellness Tips
+                        </button>
+                        <button class="action-btn" data-action="emergency">
+                            <i class="fas fa-ambulance"></i>
+                            Emergency Info
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Chat Area -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Header -->
+                <div class="chat-header">
+                    <div class="d-flex align-items-center">
+                        <div class="bot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h5 class="mb-0">HealthBot AI</h5>
+                            <small class="text-success" id="botStatus">
+                                <i class="fas fa-circle pulse"></i>
+                                <span id="statusText">Online & Ready to Help</span>
+                            </small>
+                            <br>
+                            <small class="text-muted" id="speechStatus">
+                                <i class="fas fa-volume-up"></i> Voice ready
+                            </small>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-outline-primary btn-sm me-2" id="speechToggle" title="Toggle voice">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm me-2" id="clearChat">
+                            <i class="fas fa-trash"></i> Clear Chat
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" id="exportChat">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Chat Messages -->
+                <div class="chat-container" id="chatContainer">
+                    <div class="welcome-message">
+                        <div class="welcome-icon">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <h3>Welcome to HealthBot AI</h3>
+                        <p class="text-muted">Your intelligent health companion powered by advanced AI. I can help you with:</p>
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-volume-up me-2"></i>
+                            <strong>🆕 Voice Feature:</strong> I can speak.
+                            <br>
+                            <button class="btn btn-sm btn-primary mt-2" id="testVoiceBtn">
+                                <i class="fas fa-play"></i> Test Voice
+                            </button>
+                            <small class="text-muted ms-2">Use the <i class="fas fa-volume-up"></i> button in header to toggle voice on/off.</small>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="feature-card">
+                                    <i class="fas fa-search-plus text-primary"></i>
+                                    <h6>Symptom Analysis</h6>
+                                    <p>Describe your symptoms for preliminary insights</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-card">
+                                    <i class="fas fa-pills text-success"></i>
+                                    <h6>Medication Information</h6>
+                                    <p>Get detailed information about medications</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-card">
+                                    <i class="fas fa-heart text-danger"></i>
+                                    <h6>Health Tips</h6>
+                                    <p>Personalized wellness and prevention advice</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="feature-card">
+                                    <i class="fas fa-user-md text-info"></i>
+                                    <h6>Medical Research</h6>
+                                    <p>Evidence-based information from trusted sources</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="disclaimer mt-4">
+                            <div class="alert alert-warning d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <small>
+                                    <strong>Medical Disclaimer:</strong> This AI assistant provides general health information only. 
+                                    Always consult healthcare professionals for medical advice, diagnosis, or treatment.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Typing Indicator -->
+                <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                    <div class="message bot-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="typing-animation">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <small class="thinking-text">HealthBot is analyzing your query...</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Input Area -->
+                <div class="input-area">
+                    <form id="chatForm" class="d-flex">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="fas fa-comment-medical text-primary"></i>
+                            </span>
+                            <input 
+                                type="text" 
+                                class="form-control border-start-0" 
+                                id="messageInput" 
+                                placeholder="Ask me about your health concerns, symptoms, or wellness tips..."
+                                autocomplete="off"
+                            >
+                            <button class="btn btn-primary" type="submit" id="sendButton">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <div class="input-suggestions mt-2">
+                        <small class="text-muted">💬 Try asking: </small>
+                        <span class="suggestion-chip" data-suggestion="What are the symptoms of flu?">Flu symptoms</span>
+                        <span class="suggestion-chip" data-suggestion="How to lower blood pressure naturally?">Lower blood pressure</span>
+                        <span class="suggestion-chip" data-suggestion="What foods boost immune system?">Boost immunity</span>
+                    </div>
+                    <div class="input-suggestions mt-2">
+                        <small class="text-muted">🆕 <strong>New Features - Internet Links:</strong> </small>
+                        <span class="suggestion-chip" data-suggestion="Show me diabetes research articles and links">📚 Diabetes articles</span>
+                        <span class="suggestion-chip" data-suggestion="Find doctors in South Africa">🇿🇦 SA Doctors</span>
+                        <span class="suggestion-chip" data-suggestion="Heart disease treatment studies online sources">❤️ Heart studies</span>
+                        <span class="suggestion-chip" data-suggestion="Emergency medical services in South Africa">🚑 SA Emergency</span>
+                        <span class="suggestion-chip" data-suggestion="Mental health resources with links">🧠 Mental health links</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'health_app/js/chatbot.js' %}"></script>
+</body>
+</html>

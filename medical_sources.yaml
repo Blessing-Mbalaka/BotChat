@@ -1,0 +1,78 @@
+medical_sources:
+  primary_sites:
+    - name: "Mayo Clinic"
+      url: "https://www.mayoclinic.org"
+      search_endpoint: "/search"
+      priority: 1
+      categories: ["symptoms", "diseases", "treatments", "prevention"]
+    
+    - name: "WebMD"
+      url: "https://www.webmd.com"
+      search_endpoint: "/search/search_results/default.aspx"
+      priority: 2
+      categories: ["health-topics", "symptoms", "drugs", "conditions"]
+    
+    - name: "Healthline"
+      url: "https://www.healthline.com"
+      search_endpoint: "/search"
+      priority: 3  
+      categories: ["health", "nutrition", "fitness", "mental-health"]
+    
+    - name: "MedlinePlus"
+      url: "https://medlineplus.gov"
+      search_endpoint: "/search"
+      priority: 1
+      categories: ["health-topics", "drugs", "supplements", "medical-tests"]
+
+  south_african_sites:
+    - name: "Health24"
+      url: "https://www.health24.com"
+      search_endpoint: "/search"
+      priority: 1
+      categories: ["south-africa", "health-news", "conditions", "lifestyle"]
+      region: "South Africa"
+    
+    - name: "South African Medical Journal"
+      url: "https://www.samj.org.za"
+      search_endpoint: "/index.php/samj/search"
+      priority: 2
+      categories: ["research", "medical-studies", "south-africa"]
+      region: "South Africa"
+    
+    - name: "Mediclinic"
+      url: "https://www.mediclinic.co.za"
+      search_endpoint: "/en/search"
+      priority: 3
+      categories: ["hospitals", "doctors", "services", "south-africa"]
+      region: "South Africa"
+    
+    - name: "Netcare"
+      url: "https://www.netcare.co.za"
+      search_endpoint: "/search"  
+      priority: 3
+      categories: ["hospitals", "doctors", "emergency", "south-africa"]
+      region: "South Africa"
+    
+    - name: "SA Department of Health"
+      url: "https://www.health.gov.za"
+      search_endpoint: "/search"
+      priority: 2
+      categories: ["policies", "health-programs", "south-africa", "public-health"]
+      region: "South Africa"
+
+  search_parameters:
+    max_results: 5
+    timeout: 10
+    headers:
+      User-Agent: "HealthBot/1.0 (Medical Information Assistant)"
+    
+  content_filters:
+    include_keywords: ["symptoms", "treatment", "diagnosis", "health", "medical", "disease"]
+    exclude_keywords: ["advertisement", "sponsored", "buy now", "sale"]
+    
+rag_settings:
+  local_docs_path: "./medical_docs"
+  chunk_size: 1000
+  overlap: 200
+  similarity_threshold: 0.7
+  max_context_length: 4000

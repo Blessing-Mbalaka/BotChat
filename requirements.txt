@@ -1,0 +1,13 @@
+django>=5.2.7
+python-dotenv>=1.0.0
+google-generativeai>=0.7.2
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+pyyaml>=6.0.1
+sentence-transformers>=2.2.2
+chromadb>=0.4.15
+numpy>=1.24.3
+langchain>=0.1.0
+langchain-google-genai>=1.0.0
+python-docx>=0.8.11
+PyPDF2>=3.0.1
