@@ -1,0 +1,200 @@
+"""
+Business School KPI Configuration
+
+Defines search sources, search patterns, and data schemas for researching business schools.
+"""
+
+search_sources:
+  - name: "AACSB Accredited Schools"
+    url: "https://www.aacsb.edu"
+    search_url: "https://www.aacsb.edu/accreditation/accredited-schools"
+    description: "Association to Advance Collegiate Schools of Business"
+    priority: 1
+    
+  - name: "QS Business Schools Rankings"
+    url: "https://www.topuniversities.com"
+    search_url: "https://www.topuniversities.com/business-schools-rankings"
+    description: "QS Rankings for Business Schools"
+    priority: 1
+    
+  - name: "Times Higher Education Business Rankings"
+    url: "https://www.timeshighereducation.com"
+    search_url: "https://www.timeshighereducation.com/business-school-rankings"
+    description: "Times Higher Education Business Rankings"
+    priority: 1
+    
+  - name: "Financial Times MBA Rankings"
+    url: "https://www.ft.com"
+    search_url: "https://rankings.ft.com/businessschoolrankings"
+    description: "FT MBA Rankings"
+    priority: 2
+    
+  - name: "EQUIS Accredited Schools"
+    url: "https://www.efmd.org"
+    search_url: "https://www.efmd.org/find-a-school"
+    description: "EQUIS accredited business schools"
+    priority: 1
+    
+  - name: "Association of MBAs (AMBA)"
+    url: "https://www.amba.ac.uk"
+    search_url: "https://www.amba.ac.uk/find-an-mba"
+    description: "AMBA accredited MBA programmes"
+    priority: 1
+
+search_patterns:
+  school_name:
+    - "School of Business"
+    - "Business School"
+    - "Faculty of Business"
+    - "School of Management"
+    
+  programmes:
+    ma: ["Master of Arts", "MA Programme", "MA in"]
+    mba: ["MBA", "Master of Business Administration"]
+    bachelor: ["Bachelor", "Undergraduate B."]
+    postgraduate: ["PGDip", "PGCert", "Postgraduate Diploma", "Postgraduate Certificate"]
+    pdhce: ["PDH", "CPD", "Professional Development"]
+    certificate: ["Certificate", "Certification Programme"]
+    executive: ["Executive Education", "Executive MBA", "EMBA"]
+    
+  staff_disciplines:
+    - "Finance"
+    - "Marketing"
+    - "Strategy"
+    - "Operations"
+    - "Entrepreneurship"
+    - "Organizational Behavior"
+    - "Economics"
+    - "Business Law"
+    - "Leadership"
+    - "Digital/Technology"
+    
+  research_centres:
+    - "Centre"
+    - "Center"
+    - "Institute"
+    - "Hub"
+    - "Lab"
+    - "Research Group"
+
+schema:
+  school:
+    fields:
+      - name: "school_name"
+        type: "string"
+        required: true
+      - name: "location"
+        type: "object"
+        fields:
+          - name: "country"
+            type: "string"
+          - name: "city"
+            type: "string"
+      - name: "accreditation"
+        type: "array"
+        items_type: "string"
+      - name: "founded_year"
+        type: "integer"
+      - name: "website"
+        type: "string"
+      - name: "academic_staff_disciplines"
+        type: "object"
+        description: "Mapping of discipline to count"
+      - name: "programmes"
+        type: "array"
+        items:
+          - name: "type"
+            type: "string"
+            enum: ["MA", "MBA", "Bachelor", "PDH", "Certificate", "Postgraduate", "Executive"]
+          - name: "name"
+            type: "string"
+          - name: "duration_months"
+            type: "integer"
+          - name: "enrollment"
+            type: "integer"
+      - name: "research_centres"
+        type: "array"
+        items:
+          - name: "name"
+            type: "string"
+          - name: "theme"
+            type: "string"
+          - name: "website"
+            type: "string"
+      - name: "source"
+        type: "string"
+      - name: "research_date"
+        type: "datetime"
+      - name: "data_quality"
+        type: "string"
+        enum: ["HIGH", "MEDIUM", "LOW", "SYNTHETIC"]
+
+# Regional mappings for geographic stratification
+regions:
+  Europe:
+    - "United Kingdom"
+    - "France"
+    - "Germany"
+    - "Spain"
+    - "Italy"
+    - "Netherlands"
+    - "Switzerland"
+    - "Belgium"
+    - "Sweden"
+    - "Denmark"
+  North America:
+    - "United States"
+    - "Canada"
+    - "Mexico"
+  South America:
+    - "Brazil"
+    - "Colombia"
+    - "Argentina"
+    - "Chile"
+  Asia Pacific:
+    - "Australia"
+    - "Singapore"
+    - "Hong Kong"
+    - "China"
+    - "Japan"
+    - "India"
+    - "South Korea"
+    - "Vietnam"
+  Africa:
+    - "South Africa"
+    - "Nigeria"
+    - "Kenya"
+    - "Egypt"
+  Middle East:
+    - "United Arab Emirates"
+    - "Saudi Arabia"
+    - "Qatar"
+
+# KPI Query Templates
+kpi_templates:
+  total_programmes:
+    metric: "Total Programmes"
+    description: "Count of all programme offerings"
+    aggregation: "count"
+    
+  programmes_by_type:
+    metric: "Programmes by Type"
+    description: "Breakdown of programmes by type (MA, MBA, Bachelor, etc.)"
+    aggregation: "group_by"
+    group_by_field: "type"
+    
+  research_centres_count:
+    metric: "Research Centre Count"
+    description: "Number of active research centres"
+    aggregation: "count"
+    
+  staff_disciplines:
+    metric: "Staff by Discipline"
+    description: "Academic staff distribution across disciplines"
+    aggregation: "sum"
+    
+  accreditation_distribution:
+    metric: "Accreditation Distribution"
+    description: "Schools by accreditation standard"
+    aggregation: "group_by"
+    group_by_field: "accreditation"

@@ -1,17 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HealthBot AI -                    <div class="input-suggestions mt-2">
-                        <small class="text-muted">Quick suggestions:</small>
-                        <span class="suggestion-chip" data-suggestion="What are the symptoms of flu?">Flu symptoms</span>
-                        <span class="suggestion-chip" data-suggestion="Show me diabetes research articles and links">Diabetes articles</span>
-                        <span class="suggestion-chip" data-suggestion="Find doctors in South Africa">SA Doctors</span>
-                        <span class="suggestion-chip" data-suggestion="Heart disease treatment studies online sources">Heart studies</span>
-                        <span class="suggestion-chip" data-suggestion="Emergency medical services in South Africa">SA Emergency</span>
-                        <span class="suggestion-chip" data-suggestion="Mental health resources with links">Mental health links</span>
-                    </div>Personal Health Assistant</title>
+    <title>HealthBot AI - Personal Health Assistant</title>
     {% load static %}
     
     <!-- Bootstrap CSS -->
@@ -56,7 +48,7 @@
                         </button>
                         <button class="action-btn" data-action="sa-doctors">
                             <i class="fas fa-user-md"></i>
-                            🇿🇦 SA Doctors
+                             SA Doctors
                         </button>
                         <button class="action-btn" data-action="medications">
                             <i class="fas fa-pills"></i>
@@ -70,6 +62,10 @@
                             <i class="fas fa-ambulance"></i>
                             Emergency Info
                         </button>
+                        <a href="/course/" class="action-btn" style="text-decoration: none; color: inherit;">
+                            <i class="fas fa-graduation-cap"></i>
+                            CourseBot AI
+                        </a>
                     </div>
                 </div>
             </div>
@@ -95,11 +91,18 @@
                         </div>
                     </div>
                     <div class="header-actions">
+                        <input type="file" id="fileUpload" style="display:none" />
                         <button class="btn btn-outline-primary btn-sm me-2" id="speechToggle" title="Toggle voice">
                             <i class="fas fa-volume-up"></i>
                         </button>
                         <button class="btn btn-outline-primary btn-sm me-2" id="clearChat">
                             <i class="fas fa-trash"></i> Clear Chat
+                        </button>
+                        <button class="btn btn-outline-success btn-sm me-2" type="button" onclick="document.getElementById('fileUpload').click()">
+                            <i class="fas fa-file-upload"></i> Upload
+                        </button>
+                        <button class="btn btn-outline-info btn-sm me-2" type="button" id="toggleKpi">
+                            <i class="fas fa-chart-line"></i> KPI Mode
                         </button>
                         <button class="btn btn-outline-secondary btn-sm" id="exportChat">
                             <i class="fas fa-download"></i> Export
@@ -117,7 +120,7 @@
                         <p class="text-muted">Your intelligent health companion powered by advanced AI. I can help you with:</p>
                         <div class="alert alert-info mt-3">
                             <i class="fas fa-volume-up me-2"></i>
-                            <strong>🆕 Voice Feature:</strong> I can speak.
+                            <strong> Voice Feature:</strong> I can speak.
                             <br>
                             <button class="btn btn-sm btn-primary mt-2" id="testVoiceBtn">
                                 <i class="fas fa-play"></i> Test Voice
@@ -203,18 +206,69 @@
                         </div>
                     </form>
                     <div class="input-suggestions mt-2">
-                        <small class="text-muted">💬 Try asking: </small>
+                        <small class="text-muted">Try asking:</small>
                         <span class="suggestion-chip" data-suggestion="What are the symptoms of flu?">Flu symptoms</span>
                         <span class="suggestion-chip" data-suggestion="How to lower blood pressure naturally?">Lower blood pressure</span>
                         <span class="suggestion-chip" data-suggestion="What foods boost immune system?">Boost immunity</span>
                     </div>
+                    <div class="kpi-panel card shadow-sm mt-3" id="kpiPanel" style="display: none;">
+                        <div class="card-body">
+                            <h6 class="mb-3"><i class="fas fa-chart-line text-primary me-2"></i>Custom KPI Query</h6>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label small text-muted">Metric name</label>
+                                    <input type="text" class="form-control form-control-sm" id="kpiMetric" placeholder="e.g. Site Visits">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-muted">Table</label>
+                                    <select class="form-select form-select-sm" id="kpiTableSelect">
+                                        <option value="">Latest detected table</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-muted">Value column</label>
+                                    <input type="text" class="form-control form-control-sm" id="kpiValueColumn" placeholder="e.g. Visits">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted">Aggregation</label>
+                                    <select class="form-select form-select-sm" id="kpiAggregation">
+                                        <option value="sum">Sum</option>
+                                        <option value="avg">Average</option>
+                                        <option value="min">Min</option>
+                                        <option value="max">Max</option>
+                                        <option value="count">Count</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted">Date column (optional)</label>
+                                    <input type="text" class="form-control form-control-sm" id="kpiDateColumn" placeholder="e.g. Date">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted">From</label>
+                                    <input type="date" class="form-control form-control-sm" id="kpiDateFrom">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted">To</label>
+                                    <input type="date" class="form-control form-control-sm" id="kpiDateTo">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small text-muted">Filters (col=value, comma separated)</label>
+                                    <input type="text" class="form-control form-control-sm" id="kpiFilters" placeholder="Region=EMEA, Channel=Organic">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm me-2" id="closeKpiBtn">Close</button>
+                                <button type="button" class="btn btn-primary btn-sm" id="runKpiBtn"><i class="fas fa-play me-1"></i>Run KPI</button>
+                            </div>
+                        </div>
+                    </div>
                     <div class="input-suggestions mt-2">
-                        <small class="text-muted">🆕 <strong>New Features - Internet Links:</strong> </small>
-                        <span class="suggestion-chip" data-suggestion="Show me diabetes research articles and links">📚 Diabetes articles</span>
-                        <span class="suggestion-chip" data-suggestion="Find doctors in South Africa">🇿🇦 SA Doctors</span>
-                        <span class="suggestion-chip" data-suggestion="Heart disease treatment studies online sources">❤️ Heart studies</span>
-                        <span class="suggestion-chip" data-suggestion="Emergency medical services in South Africa">🚑 SA Emergency</span>
-                        <span class="suggestion-chip" data-suggestion="Mental health resources with links">🧠 Mental health links</span>
+                        <small class="text-muted"><strong>New Features - Internet Links:</strong></small>
+                        <span class="suggestion-chip" data-suggestion="Show me diabetes research articles and links">Diabetes articles</span>
+                        <span class="suggestion-chip" data-suggestion="Find doctors in South Africa">SA Doctors</span>
+                        <span class="suggestion-chip" data-suggestion="Heart disease treatment studies online sources">Heart studies</span>
+                        <span class="suggestion-chip" data-suggestion="Emergency medical services in South Africa">SA Emergency</span>
+                        <span class="suggestion-chip" data-suggestion="Mental health resources with links">Mental health links</span>
                     </div>
                 </div>
             </div>
@@ -223,7 +277,19 @@
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <!-- HTML to Canvas for image exports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Custom JS -->
     <script src="{% static 'health_app/js/chatbot.js' %}"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+

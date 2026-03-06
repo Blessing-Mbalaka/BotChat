@@ -1,0 +1,405 @@
+{
+  "country_south_africa": {
+    "country": "South Africa",
+    "schools": [
+      {
+        "school_name": "University of Cape Town - Graduate School of Business",
+        "website": "https://www.gsb.uct.ac.za",
+        "country": "South Africa",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:15.709105"
+      },
+      {
+        "school_name": "University of Pretoria - Gordon Institute of Business Science",
+        "website": "https://www.gibs.co.za",
+        "country": "South Africa",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:15.911247"
+      },
+      {
+        "school_name": "Stellenbosch University - Business School",
+        "website": "https://www.usb.ac.za",
+        "country": "South Africa",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:16.111702"
+      },
+      {
+        "school_name": "Wits Business School",
+        "website": "https://www.wits.ac.za/bbs/",
+        "country": "South Africa",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:16.311898"
+      },
+      {
+        "school_name": "University of the Witwatersrand - Wits Business School",
+        "website": "https://www.wits.ac.za",
+        "country": "South Africa",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:16.512282"
+      },
+      {
+        "school_name": "University of Johannesburg - College of Business and Economics",
+        "website": "https://www.uj.ac.za",
+        "country": "South Africa",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:16.712711"
+      },
+      {
+        "school_name": "North-West University - Business School",
+        "website": "https://www.nwu.ac.za",
+        "country": "South Africa",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:16.913329"
+      }
+    ],
+    "cached_at": 1772833037.113642,
+    "count": 7
+  },
+  "country_zimbabwe": {
+    "country": "Zimbabwe",
+    "schools": [
+      {
+        "school_name": "University of Zimbabwe - Department of Business Studies",
+        "website": "https://www.uz.ac.zw",
+        "country": "Zimbabwe",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:14.704300"
+      },
+      {
+        "school_name": "Chinhoyi University of Technology - Business School",
+        "website": "https://www.cut.ac.zw",
+        "country": "Zimbabwe",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:14.905067"
+      },
+      {
+        "school_name": "Zimbabwe Open University - Business Studies",
+        "website": "https://www.zou.ac.zw",
+        "country": "Zimbabwe",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:15.105637"
+      },
+      {
+        "school_name": "Midlands State University - Faculty of Commerce",
+        "website": "https://www.msu.ac.zw",
+        "country": "Zimbabwe",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:15.306054"
+      },
+      {
+        "school_name": "Zimbabwe Metropolitan University - Business School",
+        "website": "https://www.zmu.ac.zw",
+        "country": "Zimbabwe",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:37:15.506685"
+      }
+    ],
+    "cached_at": 1772833035.706956,
+    "count": 5
+  },
+  "country_botswana": {
+    "country": "Botswana",
+    "schools": [
+      {
+        "school_name": "University of Botswana - Faculty of Business",
+        "website": "https://www.ub.ac.bw",
+        "country": "Botswana",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:44:52.093743"
+      },
+      {
+        "school_name": "Botswana Accountancy College",
+        "website": "https://www.bac.ac.bw",
+        "country": "Botswana",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:44:52.294611"
+      }
+    ],
+    "cached_at": 1772833492.495149,
+    "count": 2
+  },
+  "country_ethiopia": {
+    "country": "Ethiopia",
+    "schools": [
+      {
+        "school_name": "Addis Ababa University - College of Business and Economics",
+        "website": "https://aau.edu.et",
+        "country": "Ethiopia",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:05.066591",
+        "programmes": [
+          {
+            "type": "MBA",
+            "name": "MBA Programme"
+          }
+        ],
+        "research_centres": [],
+        "academic_staff_disciplines": {},
+        "academic_staff_count": 0,
+        "accreditation": [],
+        "data_quality": "MEDIUM",
+        "extraction_method": "pattern_matching",
+        "kpi_extraction_method": "ollama",
+        "research_date": "2026-03-06T23:45:08.994093"
+      },
+      {
+        "school_name": "Bahir Dar University - College of Business and Economics",
+        "website": "https://bdu.edu.et",
+        "country": "Ethiopia",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:05.266897",
+        "programmes": [
+          {
+            "type": "MBA",
+            "name": "MBA Programme"
+          }
+        ],
+        "research_centres": [
+          {
+            "name": "Research Center Research",
+            "theme": "Business Research"
+          }
+        ],
+        "academic_staff_disciplines": {},
+        "academic_staff_count": 0,
+        "accreditation": [],
+        "data_quality": "MEDIUM",
+        "extraction_method": "pattern_matching",
+        "kpi_extraction_method": "ollama",
+        "research_date": "2026-03-06T23:45:12.825495"
+      },
+      {
+        "school_name": "Mekelle University - College of Business and Economics",
+        "website": "https://mu.edu.et",
+        "country": "Ethiopia",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:05.467666",
+        "programmes": [
+          {
+            "type": "POSTGRADUATE",
+            "name": "POSTGRADUATE Programme"
+          },
+          {
+            "type": "BACHELOR",
+            "name": "BACHELOR Programme"
+          }
+        ],
+        "research_centres": [
+          {
+            "name": "Lab Research",
+            "theme": "Business Research"
+          }
+        ],
+        "academic_staff_disciplines": {},
+        "academic_staff_count": 0,
+        "accreditation": [],
+        "data_quality": "MEDIUM",
+        "extraction_method": "pattern_matching",
+        "kpi_extraction_method": "ollama",
+        "research_date": "2026-03-06T23:45:16.378255"
+      }
+    ],
+    "cached_at": 1772833505.667978,
+    "count": 3
+  },
+  "country_ghana": {
+    "country": "Ghana",
+    "schools": [
+      {
+        "school_name": "University of Ghana - School of Administration",
+        "website": "https://www.ug.edu.gh",
+        "country": "Ghana",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:16.889536",
+        "programmes": [
+          {
+            "type": "MA",
+            "name": "MA Programme"
+          },
+          {
+            "type": "BACHELOR",
+            "name": "BACHELOR Programme"
+          }
+        ],
+        "research_centres": [],
+        "academic_staff_disciplines": {},
+        "academic_staff_count": 2027,
+        "accreditation": [],
+        "data_quality": "MEDIUM",
+        "extraction_method": "pattern_matching",
+        "kpi_extraction_method": "ollama",
+        "research_date": "2026-03-06T23:45:19.333811"
+      },
+      {
+        "school_name": "Ashesi University - Business Management",
+        "website": "https://www.ashesi.edu.gh",
+        "country": "Ghana",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:17.090771"
+      },
+      {
+        "school_name": "KNUST - School of Business",
+        "website": "https://www.knust.edu.gh",
+        "country": "Ghana",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:17.291133"
+      }
+    ],
+    "cached_at": 1772833517.49141,
+    "count": 3
+  },
+  "country_kenya": {
+    "country": "Kenya",
+    "schools": [
+      {
+        "school_name": "Strathmore University Business School",
+        "website": "https://www.strathmore.edu/sbs",
+        "country": "Kenya",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:25.896755"
+      },
+      {
+        "school_name": "University of Nairobi - School of Business",
+        "website": "https://www.uonbi.ac.ke",
+        "country": "Kenya",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:26.097363",
+        "programmes": [
+          {
+            "type": "POSTGRADUATE",
+            "name": "POSTGRADUATE Programme"
+          },
+          {
+            "type": "BACHELOR",
+            "name": "BACHELOR Programme"
+          }
+        ],
+        "research_centres": [
+          {
+            "name": "Research Centre Research",
+            "theme": "Business Research"
+          }
+        ],
+        "academic_staff_disciplines": {},
+        "academic_staff_count": 2024,
+        "accreditation": [],
+        "data_quality": "MEDIUM",
+        "extraction_method": "pattern_matching",
+        "kpi_extraction_method": "ollama",
+        "research_date": "2026-03-06T23:45:34.185703"
+      },
+      {
+        "school_name": "Kenyatta University - Business School",
+        "website": "https://www.kenyatta.ac.ke",
+        "country": "Kenya",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:26.297572"
+      }
+    ],
+    "cached_at": 1772833526.498251,
+    "count": 3
+  },
+  "country_morocco": {
+    "country": "Morocco",
+    "schools": [
+      {
+        "school_name": "Universit\u00e9 Mohammed V - Faculty of Law, Economics and Social Sciences",
+        "website": "https://www.um5.ac.ma",
+        "country": "Morocco",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:35.224815",
+        "programmes": [
+          {
+            "type": "MBA",
+            "name": "MBA Programme"
+          }
+        ],
+        "research_centres": [],
+        "academic_staff_disciplines": {},
+        "academic_staff_count": 0,
+        "accreditation": [],
+        "data_quality": "MEDIUM",
+        "extraction_method": "pattern_matching",
+        "kpi_extraction_method": "ollama",
+        "research_date": "2026-03-06T23:45:39.082349"
+      },
+      {
+        "school_name": "INSEA - Institut National de Statistique et d'\u00c9conomie Appliqu\u00e9e",
+        "website": "https://www.insea.ac.ma",
+        "country": "Morocco",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:35.426105"
+      },
+      {
+        "school_name": "ENA Maroc - \u00c9cole Nationale d'Agriculture",
+        "website": "https://www.enameknes.ac.ma",
+        "country": "Morocco",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:35.638925",
+        "programmes": [
+          {
+            "type": "MBA",
+            "name": "MBA Programme"
+          }
+        ],
+        "research_centres": [
+          {
+            "name": "Lab Research",
+            "theme": "Business Research"
+          }
+        ],
+        "academic_staff_disciplines": {},
+        "academic_staff_count": 110,
+        "accreditation": [],
+        "data_quality": "MEDIUM",
+        "extraction_method": "pattern_matching",
+        "kpi_extraction_method": "ollama",
+        "research_date": "2026-03-06T23:45:44.626466"
+      }
+    ],
+    "cached_at": 1772833535.839458,
+    "count": 3
+  },
+  "country_nigeria": {
+    "country": "Nigeria",
+    "schools": [
+      {
+        "school_name": "University of Lagos - Lagos Business School",
+        "website": "https://www.lbs.edu.ng",
+        "country": "Nigeria",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:45.133683"
+      },
+      {
+        "school_name": "University of Ibadan - Business School",
+        "website": "https://www.ui.edu.ng",
+        "country": "Nigeria",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:45.334444"
+      },
+      {
+        "school_name": "Covenant University - College of Business",
+        "website": "https://www.covenantuniversity.edu.ng",
+        "country": "Nigeria",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:45.535100"
+      },
+      {
+        "school_name": "Pan-Atlantic University",
+        "website": "https://www.pau.edu.ng",
+        "country": "Nigeria",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:45.735640"
+      },
+      {
+        "school_name": "Lagos City University - School of Management",
+        "website": "https://lacityu.edu.ng",
+        "country": "Nigeria",
+        "source": "Verified Database",
+        "discovery_date": "2026-03-06T23:45:45.936255"
+      }
+    ],
+    "cached_at": 1772833546.136795,
+    "count": 5
+  }
+}

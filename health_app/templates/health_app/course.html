@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourseBot AI - Educational Assistant</title>
+    {% load static %}
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'health_app/css/course.css' %}">
+</head>
+<body>
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <div class="sidebar-header">
+                    <div class="logo">
+                        <i class="fas fa-graduation-cap text-primary"></i>
+                        <h5 class="ms-2 mb-0">CourseBot AI</h5>
+                    </div>
+                </div>
+                
+                <div class="sidebar-content">
+                    <!-- Course Statistics -->
+                    <div class="stats-section mb-4">
+                        <h6 class="text-muted mb-3">Course Materials</h6>
+                        <div class="stats-card">
+                            <div class="stat-item">
+                                <i class="fas fa-file-pdf text-danger"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="document-count">0</span>
+                                    <span class="stat-label">Documents</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-comments text-info"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="conversation-count">0</span>
+                                    <span class="stat-label">Conversations</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PDF Upload Section -->
+                    <div class="upload-section mb-4">
+                        <h6 class="text-muted mb-3">Upload Course Material</h6>
+                        <form id="pdf-upload-form" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <input type="text" class="form-control form-control-sm" id="course-name" 
+                                       placeholder="Course name (optional)" maxlength="100">
+                            </div>
+                            <div class="mb-3">
+                                <input type="file" class="form-control form-control-sm" id="pdf-file" 
+                                       accept=".pdf" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-upload"></i> Upload PDF
+                            </button>
+                        </form>
+                        <div id="upload-status" class="mt-2"></div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <h6 class="text-muted mb-3">Quick Actions</h6>
+                        <button class="action-btn" data-action="summary">
+                            <i class="fas fa-list-ul"></i>
+                            <span>Course Summary</span>
+                        </button>
+                        <button class="action-btn" data-action="key-concepts">
+                            <i class="fas fa-key"></i>
+                            <span>Key Concepts</span>
+                        </button>
+                        <button class="action-btn" data-action="quiz">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Practice Quiz</span>
+                        </button>
+                        <button class="action-btn" data-action="assignments">
+                            <i class="fas fa-tasks"></i>
+                            <span>Assignments</span>
+                        </button>
+                        <a href="/" class="action-btn" style="text-decoration: none; color: inherit;">
+                            <i class="fas fa-heartbeat"></i>
+                            <span>HealthBot AI</span>
+                        </a>
+                    </div>
+                    
+                    <!-- History Search -->
+                    <div class="history-search mt-4">
+                        <h6 class="text-muted mb-3">Search History</h6>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" id="history-search" 
+                                   placeholder="Search previous conversations...">
+                            <button class="btn btn-outline-secondary" type="button" id="search-history-btn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div id="history-results" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Chat Area -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Header -->
+                <div class="chat-header">
+                    <div class="header-left">
+                        <div class="avatar-container">
+                            <div class="avatar">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="status-indicator online"></div>
+                        </div>
+                        <div class="chat-info">
+                            <h6 class="mb-0">CourseBot AI</h6>
+                            <small class="text-muted">Educational Assistant</small>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <!-- External Search Toggle -->
+                        <button id="external-search-toggle" class="btn btn-outline-info btn-sm me-2" 
+                                title="Allow external search when local content insufficient">
+                            <i class="fas fa-globe"></i> <span id="external-status">External: OFF</span>
+                        </button>
+                        <!-- Speech Toggle -->
+                        <button id="speech-toggle" class="btn btn-outline-secondary btn-sm me-2" 
+                                title="Toggle text-to-speech">
+                            <i class="fas fa-volume-up"></i> <span id="speech-status">Speech: OFF</span>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" id="clear-chat">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message bot-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="sender-name">CourseBot AI</span>
+                                <span class="message-time" data-time="now"></span>
+                            </div>
+                            <div class="message-text">
+                                👋 <strong>Welcome to CourseBot AI!</strong><br><br>
+                                I'm your educational assistant, designed to help you with course materials and curriculum content.<br><br>
+                                
+                                <strong>🎓 What I can do:</strong><br>
+                                • Answer questions based on your uploaded course materials<br>
+                                • Provide explanations of key concepts<br>
+                                • Help with assignments and practice questions<br>
+                                • Search through conversation history for quick retrieval<br>
+                                • Request external educational sources when needed<br><br>
+                                
+                                <strong>📚 To get started:</strong><br>
+                                1. Upload your course PDFs using the sidebar<br>
+                                2. Ask me questions about your course content<br>
+                                3. I'll search your materials first, then ask for permission to find external sources if needed<br><br>
+                                
+                                <button id="test-voice-btn" class="btn btn-sm btn-info me-2">
+                                    <i class="fas fa-music"></i> Test Voice
+                                </button>
+                                <span id="speech-debug" class="text-muted small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-container">
+                    <form id="chat-form" class="chat-form">
+                        <div class="input-group">
+                            <textarea class="form-control" id="message-input" 
+                                      placeholder="Ask me about your course materials..." 
+                                      rows="1" style="resize: none;"></textarea>
+                            <button class="btn btn-primary" type="submit" id="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- External Search Permission Dialog -->
+                    <div id="external-search-prompt" class="alert alert-info mt-2" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-question-circle me-2"></i>
+                                <strong>Limited local content found.</strong> Allow me to search external educational resources?
+                            </div>
+                            <div>
+                                <button class="btn btn-success btn-sm me-2" id="allow-external">
+                                    <i class="fas fa-check"></i> Yes
+                                </button>
+                                <button class="btn btn-secondary btn-sm" id="deny-external">
+                                    <i class="fas fa-times"></i> No
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Input Suggestions -->
+                    <div class="input-suggestions mt-2">
+                        <small class="text-muted">Quick suggestions:</small>
+                        <span class="suggestion-chip" data-suggestion="Summarize the key concepts from my course materials">Key Concepts</span>
+                        <span class="suggestion-chip" data-suggestion="Create practice questions based on uploaded content">Practice Quiz</span>
+                        <span class="suggestion-chip" data-suggestion="Explain the main themes in my course">Main Themes</span>
+                        <span class="suggestion-chip" data-suggestion="What assignments can I work on?">Assignments</span>
+                        <span class="suggestion-chip" data-suggestion="Search for related educational resources">Find Resources</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Processing your educational query...</p>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <!-- HTML to Canvas for image exports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'health_app/js/course.js' %}"></script>
+</body>
+</html>

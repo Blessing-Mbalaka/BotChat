@@ -6,7 +6,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'health_app', 'services'))
 
-from web_search_service import WebSearchService
+from health_app.services import WebSearchService
 
 def test_web_search():
     print("🔍 Testing Enhanced Web Search Functionality\n")

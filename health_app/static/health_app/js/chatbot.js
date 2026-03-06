@@ -10,7 +10,9 @@ class HealthBotChat {
         
         this.messages = [];
         this.isTyping = false;
-        
+        this.artifactStore = new Map();
+        this.chartInstances = {};
+
         // Text-to-Speech configuration
         this.speechEnabled = true;
         this.speechSynthesis = window.speechSynthesis;
@@ -28,6 +30,8 @@ class HealthBotChat {
         this.setupQuickActions();
         this.setupSuggestionChips();
         this.initializeSpeech();
+        this.setupFileUpload();
+        this.setupKpiPanel();
     }
     
     bindEvents() {
@@ -75,6 +79,684 @@ class HealthBotChat {
         this.messageInput.addEventListener('input', () => {
             this.autoResizeInput();
         });
+    }
+
+    setupFileUpload() {
+        const fileInput = document.getElementById('fileUpload');
+        if (!fileInput) return;
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            this.addSystemMessage(`Uploading ${file.name} for extraction...`);
+            const form = new FormData();
+            form.append('file', file);
+            try {
+                const res = await fetch('/api/extract/', {
+                    method: 'POST',
+                    body: form,
+                    headers: {
+                        'X-CSRFToken': this.getCSRFToken(),
+                    },
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Extraction failed');
+                this.renderArtifacts(data.artifacts || []);
+                if ((data.warnings||[]).length) {
+                    this.addSystemMessage('Warnings: ' + data.warnings.join('; '));
+                }
+            } catch (err) {
+                this.addSystemMessage('Extraction error: ' + err.message);
+            } finally {
+                fileInput.value = '';
+            }
+        });
+    }
+
+    renderArtifacts(artifacts) {
+        if (!Array.isArray(artifacts)) return;
+        let rendered = 0;
+        artifacts.forEach(artifact => {
+            if (!artifact || !artifact.id) return;
+            this.artifactStore.set(artifact.id, artifact);
+            if (artifact.type === 'table') {
+                const html = this.tableToHTML(artifact);
+                this.addRichMessage(html, 'bot');
+                rendered += 1;
+            } else if (artifact.type === 'chart') {
+                this.renderChart(artifact);
+                rendered += 1;
+            }
+        });
+        if (!rendered) {
+            this.addSystemMessage('No tables or charts detected in that file.');
+        } else {
+            this.updateKpiTableOptions();
+        }
+    }
+
+    tableToHTML(t) {
+        const esc = (s) => this.escapeHtml(s == null ? '' : s);
+        const head = '<thead><tr>' + (t.columns || []).map(c=>`<th>${esc(c)}</th>`).join('') + '</tr></thead>';
+        const bodyRows = (t.rows||[]).slice(0,50).map(r=>'<tr>'+r.map(c=>`<td>${esc(c)}</td>`).join('')+'</tr>').join('');
+        const body = `<tbody>${bodyRows}</tbody>`;
+        const source = t.source ? `<div class="artifact-meta">Source: ${esc(t.source.name || t.source.type || 'upload')}</div>` : '';
+        return `<div class="artifact-table"><div class="artifact-title">${esc(t.title || 'Table')}</div>${source}<table>${head}${body}</table></div>`;
+    }
+
+    renderChart(chart) {
+        if (typeof Chart === 'undefined') {
+            this.addSystemMessage('Chart.js not loaded; unable to render chart.');
+            return;
+        }
+        const esc = (s) => this.escapeHtml(s == null ? '' : s);
+        const canvasId = `chart-${chart.id}-${Date.now()}`;
+        const title = esc(chart.title || 'Chart');
+        const meta = chart.source ? `<div class="artifact-meta">Source: ${esc(chart.source.name || chart.source.type || 'upload')}</div>` : '';
+        const container = `<div class="artifact-chart"><div class="artifact-title">${title}</div>${meta}<canvas id="${canvasId}" height="240"></canvas></div>`;
+        this.addRichMessage(container, 'bot');
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+        const palette = ['#2c7be5', '#00d2d3', '#34a853', '#fbbc04', '#ea4335', '#6f42c1'];
+        const dataset = (chart.series || []).map((serie, idx) => {
+            const color = palette[idx % palette.length];
+            return {
+                label: serie.name || `Series ${idx+1}`,
+                data: serie.data || [],
+                borderWidth: 2,
+                borderColor: color,
+                backgroundColor: chart.chart_type === 'bar' ? color + '55' : color,
+                fill: chart.chart_type === 'line' ? false : true,
+            };
+        });
+        const config = {
+            type: (chart.chart_type || 'bar'),
+            data: {
+                labels: chart.categories || [],
+                datasets: dataset,
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: false },
+                },
+                scales: {
+                    y: { beginAtZero: true },
+                },
+            },
+        };
+        if (this.chartInstances[canvasId]) {
+            this.chartInstances[canvasId].destroy();
+        }
+        this.chartInstances[canvasId] = new Chart(ctx, config);
+    }
+
+    renderVisualization(vizConfig) {
+        /**
+         * Render a visualization from LLM-generated configuration.
+         * Supports: table, bar, pie, line, area, scatter, donut
+         */
+        try {
+            if (!vizConfig || !vizConfig.type) {
+                console.warn('Invalid visualization config:', vizConfig);
+                return;
+            }
+
+            const vizType = vizConfig.type.toLowerCase();
+            const data = vizConfig.data || {};
+            const columns = data.columns || [];
+            const rows = data.rows || [];
+
+            if (!columns || !rows || columns.length === 0) {
+                console.warn('Visualization missing data:', vizConfig);
+                return;
+            }
+
+            // Route to appropriate renderer
+            switch (vizType) {
+                case 'table':
+                    this.renderVisualizationTable(vizConfig);
+                    break;
+                case 'bar':
+                    this.renderVisualizationChart(vizConfig, 'bar');
+                    break;
+                case 'pie':
+                    this.renderVisualizationChart(vizConfig, 'pie');
+                    break;
+                case 'line':
+                    this.renderVisualizationChart(vizConfig, 'line');
+                    break;
+                case 'area':
+                    this.renderVisualizationChart(vizConfig, 'line', true); // area uses line with fill
+                    break;
+                case 'scatter':
+                    this.renderVisualizationChart(vizConfig, 'scatter');
+                    break;
+                case 'donut':
+                    this.renderVisualizationChart(vizConfig, 'doughnut');
+                    break;
+                default:
+                    console.warn('Unknown visualization type:', vizType);
+            }
+        } catch (error) {
+            console.error('Error rendering visualization:', error);
+            this.addSystemMessage(`Error rendering visualization: ${error.message}`);
+        }
+    }
+
+    renderVisualizationTable(vizConfig) {
+        /**
+         * Render tabular data as an HTML table
+         */
+        try {
+            const esc = (s) => this.escapeHtml(s == null ? '' : s);
+            const data = vizConfig.data || {};
+            const columns = data.columns || [];
+            const rows = (data.rows || []).slice(0, 50); // Limit to 50 rows
+            const title = esc(vizConfig.title || 'Data Table');
+            const tableId = `table-viz-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const downloadBtnId = `download-${tableId}`;
+            
+            // Build table HTML
+            const thead = '<thead><tr>' + columns.map(c => `<th>${esc(c)}</th>`).join('') + '</tr></thead>';
+            const tbody = '<tbody>' + rows.map(row => 
+                '<tr>' + row.map(cell => `<td>${esc(cell)}</td>`).join('') + '</tr>'
+            ).join('') + '</tbody>';
+            
+            const source = vizConfig.source ? `<div class="artifact-meta">Source: ${esc(vizConfig.source === 'extracted' ? 'Uploaded Data' : 'AI Generated')}</div>` : '';
+            
+            const html = `<div class="artifact-table" id="${tableId}">
+                <div class="artifact-title-bar">
+                    <div class="artifact-title">${title}</div>
+                    <button id="${downloadBtnId}" class="btn-download-chart" title="Download as PNG">
+                        <i class="fas fa-download"></i> PNG
+                    </button>
+                </div>
+                ${source}
+                <table class="table table-sm table-striped">
+                    ${thead}
+                    ${tbody}
+                </table>
+            </div>`;
+            
+            this.addRichMessage(html, 'bot');
+
+            // Attach download handler
+            setTimeout(() => {
+                const downloadBtn = document.getElementById(downloadBtnId);
+                if (downloadBtn) {
+                    downloadBtn.addEventListener('click', () => {
+                        this.downloadTableAsPNG(tableId, title);
+                    });
+                }
+            }, 100);
+
+        } catch (error) {
+            console.error('Error rendering table:', error);
+        }
+    }
+
+    downloadTableAsPNG(tableId, title) {
+        /**
+         * Download a table as PNG using html2canvas
+         */
+        try {
+            const tableElement = document.getElementById(tableId);
+            if (!tableElement) {
+                console.error('Table not found:', tableId);
+                return;
+            }
+
+            // Check if html2canvas is available
+            if (typeof html2canvas === 'undefined') {
+                // Fallback: use canvas rendering without html2canvas
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Basic table to canvas conversion
+                const width = tableElement.offsetWidth;
+                const height = tableElement.offsetHeight;
+                
+                canvas.width = width * 2; // 2x for better quality
+                canvas.height = height * 2;
+                
+                ctx.scale(2, 2);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Try to render HTML using a workaround
+                const cloned = tableElement.cloneNode(true);
+                cloned.style.position = 'absolute';
+                cloned.style.left = '-9999px';
+                document.body.appendChild(cloned);
+                
+                // Fallback: just create a text-based image
+                this.createTableImageFallback(tableElement, title);
+                document.body.removeChild(cloned);
+                return;
+            }
+
+            // Use html2canvas if available
+            html2canvas(tableElement, {
+                backgroundColor: '#ffffff',
+                scale: 2
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = `${title.replace(/\s+/g, '_')}_${Date.now()}.png`;
+                link.click();
+            }).catch(error => {
+                console.error('html2canvas error:', error);
+                this.createTableImageFallback(tableElement, title);
+            });
+
+        } catch (error) {
+            console.error('Error downloading table:', error);
+            this.addSystemMessage(`Error downloading table: ${error.message}`);
+        }
+    }
+
+    createTableImageFallback(tableElement, title) {
+        /**
+         * Fallback method to create table image without html2canvas
+         * Converts table to a canvas-based image
+         */
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Get table dimensions
+            const tableClone = tableElement.cloneNode(true);
+            tableClone.style.position = 'fixed';
+            tableClone.style.left = '-9999px';
+            tableClone.style.top = '-9999px';
+            tableClone.style.visibility = 'hidden';
+            document.body.appendChild(tableClone);
+            
+            const width = tableClone.offsetWidth + 40;
+            const height = tableClone.offsetHeight + 40;
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Setup context
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw title
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(title, 20, 25);
+            
+            // Draw table border
+            ctx.strokeStyle = '#cccccc';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(20, 40, Math.min(width - 40, 500), Math.min(height - 60, 400));
+            
+            document.body.removeChild(tableClone);
+            
+            // Download canvas
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `${title.replace(/\s+/g, '_')}_${Date.now()}.png`;
+            link.click();
+        } catch (error) {
+            console.error('Fallback image creation error:', error);
+            this.addSystemMessage('Unable to download table. Try using a modern browser.');
+        }
+    }
+
+    renderVisualizationChart(vizConfig, chartType, isArea = false) {
+        /**
+         * Render data as a Chart.js chart
+         */
+        try {
+            if (typeof Chart === 'undefined') {
+                this.addSystemMessage('Chart.js not loaded; unable to render chart.');
+                return;
+            }
+
+            const esc = (s) => this.escapeHtml(s == null ? '' : s);
+            const data = vizConfig.data || {};
+            const columns = Array.isArray(data.columns) ? data.columns : [];
+            const rows = Array.isArray(data.rows) ? data.rows : [];
+            const title = esc(vizConfig.title || 'Chart');
+            const canvasId = `chart-viz-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const downloadBtnId = `download-${canvasId}`;
+            
+            // Safety check: ensure we have data
+            if (!columns || columns.length === 0 || !rows || rows.length === 0) {
+                this.addSystemMessage('No data available for visualization.');
+                return;
+            }
+            
+            // Prepare data for Chart.js
+            let labels = [];
+            let datasets = [];
+
+            if (chartType === 'pie' || chartType === 'doughnut') {
+                // For pie/donut: first column is labels, second is values
+                if (columns.length >= 2 && rows && rows.length > 0) {
+                    labels = rows.map(row => esc(row && row[0] ? row[0] : ''));
+                    const values = rows.map(row => {
+                        const val = parseFloat(row && row[1] ? row[1] : 0);
+                        return isNaN(val) ? 0 : val;
+                    });
+                    
+                    const colors = [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+                        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                    ];
+                    
+                    datasets.push({
+                        label: columns[1] || 'Value',
+                        data: values,
+                        backgroundColor: colors.slice(0, values.length),
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    });
+                }
+            } else if (chartType === 'scatter') {
+                // For scatter: x and y coordinates
+                if (columns && columns.length >= 2 && rows && rows.length > 0) {
+                    const points = rows.map(row => ({
+                        x: parseFloat((row && row[0]) ? row[0] : 0) || 0,
+                        y: parseFloat((row && row[1]) ? row[1] : 0) || 0
+                    }));
+                    
+                    datasets.push({
+                        label: (columns && columns[1]) || 'Value',
+                        data: points,
+                        backgroundColor: '#36A2EB',
+                        borderColor: '#36A2EB'
+                    });
+                }
+            } else {
+                // For bar, line: first column is labels, rest are data series
+                if (rows && rows.length > 0) {
+                    labels = rows.map(row => esc((row && row[0]) ? row[0] : ''));
+                    
+                    const colors = [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+                        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                    ];
+                    
+                    // Create dataset for each numeric column
+                    if (columns && columns.length > 1) {
+                        for (let i = 1; i < columns.length && i < 5; i++) {
+                            const values = rows.map(row => {
+                                const val = parseFloat((row && row[i]) ? row[i] : 0);
+                                return isNaN(val) ? 0 : val;
+                            });
+                            
+                            datasets.push({
+                                label: (columns && columns[i]) || `Series ${i}`,
+                                data: values,
+                                borderColor: colors[i - 1],
+                                backgroundColor: isArea ? colors[i - 1] + '33' : (chartType === 'bar' ? colors[i - 1] : colors[i - 1] + '33'),
+                                borderWidth: 2,
+                                fill: isArea,
+                                tension: chartType === 'line' || isArea ? 0.3 : 0
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Build container with download button
+            const source = vizConfig.source ? `<div class="artifact-meta">Source: ${esc(vizConfig.source === 'extracted' ? 'Uploaded Data' : 'AI Generated')}</div>` : '';
+            const container = `<div class="artifact-chart">
+                <div class="artifact-title-bar">
+                    <div class="artifact-title">${title}</div>
+                    <button id="${downloadBtnId}" class="btn-download-chart" title="Download as PNG">
+                        <i class="fas fa-download"></i> PNG
+                    </button>
+                </div>
+                ${source}
+                <div style="position: relative; width: 100%; height: 300px;">
+                    <canvas id="${canvasId}" width="400" height="300"></canvas>
+                </div>
+            </div>`;
+            
+            this.addRichMessage(container, 'bot');
+
+            // Create Chart.js instance
+            setTimeout(() => {
+                const ctx = document.getElementById(canvasId);
+                if (!ctx) {
+                    console.error('Canvas element not found:', canvasId);
+                    return;
+                }
+
+                const config = {
+                    type: chartType,
+                    data: {
+                        labels: labels || [],
+                        datasets: datasets || []
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: datasets && datasets.length > 1, position: 'top' },
+                            title: { display: false }
+                        },
+                        scales: chartType !== 'pie' && chartType !== 'doughnut' ? {
+                            y: { beginAtZero: true },
+                            x: { display: true }
+                        } : {}
+                    }
+                };
+
+                if (this.chartInstances[canvasId]) {
+                    this.chartInstances[canvasId].destroy();
+                }
+
+                this.chartInstances[canvasId] = new Chart(ctx, config);
+
+                // Attach download handler
+                const downloadBtn = document.getElementById(downloadBtnId);
+                if (downloadBtn) {
+                    downloadBtn.addEventListener('click', () => {
+                        this.downloadChartAsPNG(canvasId, title);
+                    });
+                }
+            }, 100);
+
+        } catch (error) {
+            console.error('Error rendering chart:', error);
+            this.addSystemMessage(`Error rendering chart: ${error.message}`);
+        }
+    }
+
+    downloadChartAsPNG(canvasId, title) {
+        /**
+         * Download a chart as PNG
+         */
+        try {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error('Canvas not found:', canvasId);
+                return;
+            }
+
+            // Get the parent container for a clean download
+            const parentDiv = canvas.closest('.artifact-chart');
+            if (!parentDiv) {
+                console.error('Parent container not found');
+                return;
+            }
+
+            // Create a temporary canvas with white background
+            const tempCanvas = document.createElement('canvas');
+            const rect = canvas.getBoundingClientRect();
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+
+            const tempCtx = tempCanvas.getContext('2d');
+            // Fill with white background
+            tempCtx.fillStyle = 'white';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // Copy the chart canvas to temp canvas
+            tempCtx.drawImage(canvas, 0, 0);
+
+            // Download
+            const link = document.createElement('a');
+            link.href = tempCanvas.toDataURL('image/png');
+            link.download = `${title.replace(/\s+/g, '_')}_${Date.now()}.png`;
+            link.click();
+        } catch (error) {
+            console.error('Error downloading chart:', error);
+            this.addSystemMessage(`Error downloading chart: ${error.message}`);
+        }
+    }
+
+    addRichMessage(content, sender = 'bot') {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message rich-message`;
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar';
+        avatarDiv.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.innerHTML = content;
+
+        messageDiv.appendChild(avatarDiv);
+        messageDiv.appendChild(contentDiv);
+        this.chatContainer.appendChild(messageDiv);
+
+        this.messages.push({ content, sender, timestamp: new Date(), type: 'html' });
+        this.saveChatHistory();
+        this.scrollToBottom();
+    }
+
+    addSystemMessage(message) {
+        const html = `<div class="system-message"><i class="fas fa-info-circle"></i> ${this.escapeHtml(message)}</div>`;
+        this.addRichMessage(html, 'bot');
+    }
+
+    escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    setupKpiPanel() {
+        const toggleBtn = document.getElementById('toggleKpi');
+        const panel = document.getElementById('kpiPanel');
+        const runBtn = document.getElementById('runKpiBtn');
+        const closeBtn = document.getElementById('closeKpiBtn');
+        if (!toggleBtn || !panel) return;
+
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = panel.style.display === 'none' || panel.style.display === '';
+            panel.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) {
+                this.updateKpiTableOptions();
+            }
+        });
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                panel.style.display = 'none';
+            });
+        }
+
+        if (runBtn) {
+            runBtn.addEventListener('click', () => this.runKpi());
+        }
+    }
+
+    updateKpiTableOptions() {
+        const select = document.getElementById('kpiTableSelect');
+        if (!select) return;
+        const current = select.value;
+        select.innerHTML = '<option value="">Latest detected table</option>';
+        this.artifactStore.forEach((artifact, id) => {
+            if (artifact.type !== 'table') return;
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = `${artifact.title || 'Table'} (${id.slice(0,6)})`;
+            select.appendChild(option);
+        });
+        if (current) {
+            select.value = current;
+        }
+    }
+
+    async runKpi() {
+        const panel = document.getElementById('kpiPanel');
+        if (!panel) return;
+        const metric = document.getElementById('kpiMetric').value.trim();
+        const tableId = document.getElementById('kpiTableSelect').value;
+        const valueColumn = document.getElementById('kpiValueColumn').value.trim();
+        const aggregation = document.getElementById('kpiAggregation').value;
+        const dateColumn = document.getElementById('kpiDateColumn').value.trim();
+        const dateFrom = document.getElementById('kpiDateFrom').value;
+        const dateTo = document.getElementById('kpiDateTo').value;
+        const filterInput = document.getElementById('kpiFilters').value.trim();
+
+        const filters = [];
+        if (filterInput) {
+            filterInput.split(',').forEach(chunk => {
+                const [col, val] = chunk.split('=').map(v => v && v.trim());
+                if (col && val) {
+                    filters.push({ column: col, op: 'eq', value: val });
+                }
+            });
+        }
+
+        const payload = {
+            metric,
+            table_id: tableId || undefined,
+            value_column: valueColumn || undefined,
+            aggregation,
+            date_column: dateColumn || undefined,
+            date_from: dateFrom || undefined,
+            date_to: dateTo || undefined,
+            filters,
+        };
+
+        this.addSystemMessage('Running KPI analysis...');
+
+        try {
+            const res = await fetch('/api/kpi/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken(),
+                },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                throw new Error(data.error || 'Unable to compute KPI');
+            }
+            this.renderKpiResult(data);
+        } catch (err) {
+            this.addSystemMessage(`KPI error: ${err.message}`);
+        }
+    }
+
+    renderKpiResult(result) {
+        if (!result || !Array.isArray(result.kpis)) {
+            this.addSystemMessage('No KPI results returned.');
+            return;
+        }
+        const esc = (s) => this.escapeHtml(s == null ? '' : s);
+        const rows = result.kpis.map(kpi => {
+            return `<div class="kpi-row"><div><strong>${esc(kpi.metric)}</strong> (${esc((kpi.aggregation || '').toUpperCase())})</div><div class="kpi-value">${esc(kpi.formatted_value || kpi.value)}</div><div class="kpi-meta">Rows matched: ${kpi.rows_matched || 0}</div></div>`;
+        }).join('');
+        const summary = esc(result.summary || '');
+        const html = `<div class="kpi-result">${rows}<div class="kpi-summary">${summary}</div></div>`;
+        this.addRichMessage(html, 'bot');
     }
     
     setupQuickActions() {
@@ -241,8 +923,20 @@ class HealthBotChat {
             this.hideTypingIndicator();
             
             if (data.success) {
+                // Get message and visualizations from response
+                const responseMessage = data.message || data.response || '';
+                const visualizations = data.visualizations || [];
+                
                 // Add bot response with typing effect
-                this.addMessage(data.response, 'bot', true);
+                this.addMessage(responseMessage, 'bot', true);
+                
+                // Render visualizations
+                if (visualizations && visualizations.length > 0) {
+                    console.log(`📊 Rendering ${visualizations.length} visualizations`);
+                    visualizations.forEach(viz => {
+                        this.renderVisualization(viz);
+                    });
+                }
                 
                 // Update status indicator
                 this.updateStatusIndicator(data.ai_powered);
@@ -255,7 +949,7 @@ class HealthBotChat {
                 // Speak the response after typing animation
                 setTimeout(() => {
                     console.log('⏰ Timeout triggered for speech');
-                    this.speakMessage(data.response);
+                    this.speakMessage(responseMessage);
                 }, 2000); // Wait for typing animation to finish
                 
             } else {
@@ -295,29 +989,41 @@ class HealthBotChat {
         this.chatContainer.appendChild(messageDiv);
         
         // Store message in history
-        this.messages.push({ content, sender, timestamp: new Date() });
+        this.messages.push({ content, sender, timestamp: new Date(), type: 'text' });
         this.saveChatHistory();
         
         this.scrollToBottom();
     }
     
     typeMessage(element, text, speed = 30) {
+        // Safety check: ensure text exists
+        if (!text || typeof text !== 'string') {
+            text = String(text || '');
+        }
+        
         element.innerHTML = '';
         let i = 0;
         
         const typeInterval = setInterval(() => {
-            if (i < text.length) {
+            if (text && i < text.length) {
                 element.innerHTML += text.charAt(i);
                 i++;
                 this.scrollToBottom();
             } else {
                 clearInterval(typeInterval);
-                element.innerHTML = this.formatMessage(text);
+                if (text) {
+                    element.innerHTML = this.formatMessage(text);
+                }
             }
         }, speed);
     }
     
     formatMessage(message) {
+        // Safety check: ensure message is a string
+        if (!message || typeof message !== 'string') {
+            message = String(message || '');
+        }
+        
         // Debug: Log the original message
         console.log('🔍 Original message:', message);
         
@@ -671,25 +1377,29 @@ class HealthBotChat {
         }
         
         this.messages.forEach(msg => {
-            this.addMessageToUI(msg.content, msg.sender);
+            this.addMessageToUI(msg.content, msg.sender, msg.type);
         });
     }
-    
-    addMessageToUI(content, sender) {
+
+    addMessageToUI(content, sender, type = 'text') {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}-message`;
-        
+
         const avatarDiv = document.createElement('div');
         avatarDiv.className = 'message-avatar';
         avatarDiv.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
-        
+
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
-        contentDiv.innerHTML = this.formatMessage(content);
-        
+        if (type === 'html') {
+            contentDiv.innerHTML = content;
+        } else {
+            contentDiv.innerHTML = this.formatMessage(content);
+        }
+
         messageDiv.appendChild(avatarDiv);
         messageDiv.appendChild(contentDiv);
-        
+
         this.chatContainer.appendChild(messageDiv);
     }
     
