@@ -7,6 +7,7 @@ class CourseChatbot {
         this.chatMessages = document.getElementById('chat-messages');
         this.clearChatBtn = document.getElementById('clear-chat');
         this.loadingOverlay = document.getElementById('loading-overlay');
+        this.loadingMessage = document.getElementById('loading-message');
         
         // Course-specific elements
         this.pdfUploadForm = document.getElementById('pdf-upload-form');
@@ -36,16 +37,21 @@ class CourseChatbot {
         this.speechRate = 0.9;
         this.speechPitch = 1.0;
         this.speechVolume = 0.8;
+        this.initialLoadMinimumMs = 6000;
         
         this.init();
     }
     
     init() {
+        this.showLoading('Preparing your workspace...');
         this.bindEvents();
         this.setupQuickActions();
         this.setupSuggestionChips();
         this.loadCourseStats();
         this.initializeSpeech();
+        window.addEventListener('load', () => {
+            setTimeout(() => this.hideLoading(), this.initialLoadMinimumMs);
+        });
     }
     
     bindEvents() {
@@ -315,7 +321,7 @@ class CourseChatbot {
         this.autoResizeTextarea();
         
         // Show loading
-        this.showLoading();
+        this.showLoading('Preparing your workspace...');
         
         try {
             const response = await fetch('/course/chat/', {
@@ -418,6 +424,7 @@ class CourseChatbot {
         formData.append('pdf_file', file);
         formData.append('course_name', courseNameInput.value || 'General Course');
         
+        this.showLoading('Preparing your workspace...');
         this.showUploadStatus('Uploading and processing PDF...', 'info');
         
         try {
@@ -448,6 +455,8 @@ class CourseChatbot {
         } catch (error) {
             console.error('Error uploading PDF:', error);
             this.showUploadStatus('Error uploading file. Please try again.', 'danger');
+        } finally {
+            this.hideLoading();
         }
     }
     
@@ -621,13 +630,22 @@ class CourseChatbot {
     }
     
     showLoading() {
+        let message = 'Preparing your workspace...';
+        if (arguments.length > 0 && arguments[0]) {
+            message = arguments[0];
+        }
         this.isLoading = true;
-        this.loadingOverlay.style.display = 'flex';
+        if (this.loadingMessage) {
+            this.loadingMessage.textContent = message;
+        }
+        this.loadingOverlay.classList.remove('fade-out');
+        this.loadingOverlay.classList.add('visible');
     }
     
     hideLoading() {
         this.isLoading = false;
-        this.loadingOverlay.style.display = 'none';
+        this.loadingOverlay.classList.remove('visible');
+        this.loadingOverlay.classList.add('fade-out');
     }
     
     clearChat() {

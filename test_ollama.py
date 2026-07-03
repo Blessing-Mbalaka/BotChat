@@ -10,7 +10,7 @@ import os
 # Add project to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from health_app.services.ollama_service import OllamaService
+from health_app.services.ollama_service import OllamaService, DEFAULT_OLLAMA_MODEL
 
 
 def main():
@@ -39,7 +39,7 @@ To use this offline mode, you need to:
    - On Linux: curl https://ollama.ai/install.sh | sh
    
 3. PULL A MODEL (in a new terminal):
-   ollama pull mistral
+   ollama pull {DEFAULT_OLLAMA_MODEL}
 
 4. VERIFY IT'S RUNNING:
    curl http://localhost:11434/api/tags
@@ -59,7 +59,7 @@ Then run this test again!
 ⚠️ No models found in Ollama
 
 Install a model by running:
-   ollama pull mistral
+   ollama pull {DEFAULT_OLLAMA_MODEL}
    
 Or try these models:
    ollama pull neural-chat
@@ -68,12 +68,12 @@ Or try these models:
 """)
         return
     
-    # Test with default model (mistral)
+    # Test with the configured default local model
     print("\n" + "=" * 70)
     print("Testing Ollama Service")
     print("=" * 70)
     
-    service = OllamaService(model='mistral')
+    service = OllamaService()
     
     test_queries = [
         "What are the top 5 MBA schools?",

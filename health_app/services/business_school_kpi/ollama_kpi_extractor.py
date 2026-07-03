@@ -11,10 +11,12 @@ Sends website text to Ollama with a specialized prompt to extract:
 import logging
 import json
 import re
+import os
 from typing import Dict, List, Optional, Any
 import requests
 
 logger = logging.getLogger(__name__)
+DEFAULT_OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'ministral-3:3b')
 
 
 class OllamaKPIExtractor:
@@ -28,7 +30,7 @@ class OllamaKPIExtractor:
             ollama_url: Ollama API endpoint (default: localhost:11434)
         """
         self.ollama_url = ollama_url
-        self.model = "mistral"  # Default model, common in Ollama
+        self.model = DEFAULT_OLLAMA_MODEL
         self.timeout = 30
         
         # Check if Ollama is available

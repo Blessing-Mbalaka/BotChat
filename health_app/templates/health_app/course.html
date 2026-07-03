@@ -87,10 +87,6 @@
                             <i class="fas fa-tasks"></i>
                             <span>Assignments</span>
                         </button>
-                        <a href="/" class="action-btn" style="text-decoration: none; color: inherit;">
-                            <i class="fas fa-heartbeat"></i>
-                            <span>HealthBot AI</span>
-                        </a>
                     </div>
                     
                     <!-- History Search -->
@@ -225,8 +221,21 @@
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loading-overlay">
         <div class="loading-content">
-            <div class="spinner"></div>
-            <p>Processing your educational query...</p>
+            <div class="loading-bot">
+                <div class="loading-bot-ring"></div>
+                <div class="loading-bot-core">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <span class="loading-orbit orbit-one"></span>
+                <span class="loading-orbit orbit-two"></span>
+            </div>
+            <h2>Preparing your workspace</h2>
+            <p id="loading-message">CourseBot is arranging your study space...</p>
+            <div class="loading-dots" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
     </div>
 

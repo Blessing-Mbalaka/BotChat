@@ -142,5 +142,45 @@
     "sources_used": 0,
     "local_results": 0,
     "needed_external": false
+  },
+  {
+    "timestamp": "2026-07-03T19:55:57.950472",
+    "query": "What topics are covered in this course?",
+    "response": "I couldn't use the AI course model, but I found relevant material in your local course content.\n\nGeneral Course: Via Afrika \nGeography\nGrade 12 Stud y Guide\nA.W. H ambly, P.A.D. Beets, G .D. Samaai, K. Najjaar, S.D. \nGear, U.J. Fairhu rst, Z.P.L.  Shabalala,  J.A. Jacob s\nGrade 12 Teacher\u2019s Guide Via Afrika GeographyVia Afrika unde\n\nGeneral Course: hes may occur due to: phishing emails, compromised login \ncredentials, outdated software, or supplier issues. Another reason is \nnot having multi -factor authentication (MFA), poor backups, networks \nthat are not isolate\n\nGeneral Course: CYBER -GUARDIANS \nPROPOSAL\n2025 OCTOBER 10\nRANSOMWARE INTERVENTION PROPOSAL\nEXECUTIVE SUMMARY\nThe Proposal seeks to outline the rise in cyber -crime as well as propose a \nstrategy for responsive action outlined by the cu",
+    "sources_used": 3,
+    "local_results": 5,
+    "needed_external": false
+  },
+  {
+    "timestamp": "2026-07-03T21:21:34.419460",
+    "query": "Explain the main themes in my course",
+    "response": "I couldn't use the AI course model, but I found relevant material in your local course content.\n\nGeneral Course: age 271 .\nThe accompanying Learner\u2019s Book is written in accessible language and contains all the content your learners need to master. \nThe exciting design and layout will keep their interest and make teaching a pleasure\n\nGeneral Course: e 5 to see how much time this could save you.\n3.Ea\nch topic starts with an overview of what is taught, and the resources you need. See page 61  to find out how this will\nhelp with your planning.\n4.Th\nere is advice on pac\n\nGeneral Course: Via Afrika \nGeography\nGrade 12 Stud y Guide\nA.W. H ambly, P.A.D. Beets, G .D. Samaai, K. Najjaar, S.D. \nGear, U.J. Fairhu rst, Z.P.L.  Shabalala,  J.A. Jacob s\nGrade 12 Teacher\u2019s Guide Via Afrika GeographyVia Afrika unde\n\nYour local course corpus may be limited for this question, so external resources may still help.",
+    "sources_used": 3,
+    "local_results": 3,
+    "needed_external": true
+  },
+  {
+    "timestamp": "2026-07-03T21:23:18.331616",
+    "query": "who is the suthor of the cloud textbook",
+    "response": "I couldn't use the AI course model, but I found relevant material in your local course content.\n\nGeneral Course: ponents. Currently, he works as \nan independent cloud consultant for various clients. His current goal is to make the world of cloud \ncomputing as accessible as it can be so that it\u2019s possible to lower the learning curve\n\nGeneral Course: r a specific hot topic that we are recruiting an author for, or submit your own idea.\nShare Your Thoughts\nNow you\u2019ve finished Azure for Developers , we\u2019 d love to hear your thoughts! If you purchased the \nbook from Amazo\n\nGeneral Course: etails.\nShare Your Thoughts\n xxiii\nPiracy : If you come across any illegal copies of our works in any form on the Internet, we would \nbe grateful if you would provide us with the location address or website name. Please\n\nYour local course corpus may be limited for this question, so external resources may still help.",
+    "sources_used": 3,
+    "local_results": 5,
+    "needed_external": true
+  },
+  {
+    "timestamp": "2026-07-03T21:24:12.986106",
+    "query": "what is cloud computing and what are the types of services invcluding saas",
+    "response": "I couldn't use the AI course model, but I found relevant material in your local course content.\n\nGeneral Course: ore and more companies decide to migrate their on-premises workloads and modernize them, \nexpertise in at least one cloud vendor becomes critical when planning your next career steps.\nThe goal of this book is to help you\n\nGeneral Course: m/\nen-us/cli/azure/ ).\nCreating and deploying an Azure App  \nService resource\nTo get  started with Azure App Service, you must  learn how to create that service and deploy your \ncode. Throughout the chapter, you will see\n\nGeneral Course: 8Server Message Block (SMB) protocol  306\nService-Level Agreement (SLA)  242, 513\nservice mesh architecture  72\nservices\nconfiguring  96-99\nintegrating  224\nprovisioning  96\nservices, Azure Storage  294\nsessions, Azure S\n\nYour local course corpus may be limited for this question, so external resources may still help.",
+    "sources_used": 3,
+    "local_results": 5,
+    "needed_external": true
+  },
+  {
+    "timestamp": "2026-07-03T21:46:30.578952",
+    "query": "Please provide a summary of the key concepts from my uploaded course materials.",
+    "response": "I couldn't use the AI course model, but I found relevant material in your local course content.\n\nGeneral Course: e 5 to see how much time this could save you.\n3.Ea\nch topic starts with an overview of what is taught, and the resources you need. See page 61  to find out how this will\nhelp with your planning.\n4.Th\nere is advice on pac\n\nGeneral Course: witch our focus to particular features to learn more about the service.\nRegistries, repositories, and images\nIn the previous steps, we managed to deploy our own instance of ACR. What we have currently is a \nprivate regis\n\nGeneral Course: ing with practical eBooks and Videos from over \n4,000 industry professionals\n\u2022 Improve your learning with Skill Plans built especially for you\n\u2022 Get a free eBook or video every month\n\u2022 Fully searchable for easy access to\n\nYour local course corpus may be limited for this question, so external resources may still help.",
+    "sources_used": 3,
+    "local_results": 5,
+    "needed_external": true
   }
 ]

@@ -457,9 +457,11 @@ def generate_ai_response_content(user_message, table_context=""):
                 logger.info("🔄 Using Ollama for offline response")
                 return ollama_service.generate_response(user_message)
             else:
-                logger.info("Ollama not available, using demo mode")
-                # Return demo response with requested visualization if applicable
-                return _generate_demo_response_with_viz(user_message)
+                logger.info("Ollama not available, returning temporary capacity message")
+                return {
+                    'message': _temporary_capacity_message(),
+                    'visualizations': []
+                }
         
         logger.error(f"Error: {str(e)}", exc_info=True)
         
@@ -470,9 +472,16 @@ def generate_ai_response_content(user_message, table_context=""):
             return ollama_service.generate_response(user_message)
         
         return {
-            'message': "API unavailable. Using offline knowledge mode...",
+            'message': "The server is overloaded right now. Please try again a little later.",
             'visualizations': []
         }
+
+
+def _temporary_capacity_message():
+    """Generic user-facing message for temporary hosted model capacity issues."""
+    return (
+        "The server is overloaded right now. Please reconvene in a few hours and try again."
+    )
 
 
 def _generate_demo_response_with_viz(user_message):
@@ -800,6 +809,7 @@ def course_chat_api(request):
                 'error': 'Message cannot be empty'
             })
         
+        course_service = get_course_service()
         if not course_service:
             return JsonResponse({
                 'success': False,
@@ -862,6 +872,7 @@ def course_chat_api(request):
 def upload_pdf(request):
     """Handle PDF file uploads for course materials"""
     try:
+        course_service = get_course_service()
         if not course_service:
             return JsonResponse({
                 'success': False,
@@ -912,6 +923,7 @@ def upload_pdf(request):
 def course_stats(request):
     """Get course corpus statistics"""
     try:
+        course_service = get_course_service()
         if not course_service:
             return JsonResponse({
                 'success': False,
@@ -1112,6 +1124,7 @@ def search_course_history(request):
         data = json.loads(request.body)
         query = data.get('query', '').strip()
         
+        course_service = get_course_service()
         if not course_service:
             return JsonResponse({
                 'success': False,

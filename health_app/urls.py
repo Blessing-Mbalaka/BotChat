@@ -4,11 +4,12 @@ from . import views
 app_name = 'health_app'
 
 urlpatterns = [
-    path('', views.chatbot_view, name='chatbot'),
+    path('', views.course_view, name='course_home'),
     path('chat/', views.chat_api, name='chat_api'),
     path('api/extract/', views.extract_api, name='extract_api'),
     path('api/kpi/', views.kpi_api, name='kpi_api'),
     path('api/status/', views.api_status, name='api_status'),
+    path('healthbot/', views.chatbot_view, name='chatbot'),
     # Course-related URLs
     path('course/', views.course_view, name='course'),
     path('course/chat/', views.course_chat_api, name='course_chat_api'),

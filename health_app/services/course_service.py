@@ -3,15 +3,27 @@ import logging
 import json
 from datetime import datetime
 from typing import List, Dict, Any, Optional
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
 from django.conf import settings
 from .bot_config import BotConfigManager
-import PyPDF2
+try:
+    import PyPDF2
+except ImportError:
+    PyPDF2 = None
 import io
 import requests
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError:
+    SentenceTransformer = None
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
+try:
+    from sklearn.metrics.pairwise import cosine_similarity
+except ImportError:
+    cosine_similarity = None
 import pickle
 import hashlib
 
@@ -20,7 +32,7 @@ logger = logging.getLogger(__name__)
 class CourseService:
     def __init__(self):
         """Initialize the Course Service with vector embeddings and conversation history"""
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.model = None
         self.course_corpus = []
         self.course_embeddings = None
         self.conversation_history = []
@@ -28,12 +40,23 @@ class CourseService:
         self.embeddings_file = 'course_embeddings.pkl'
         self.history_file = 'course_conversation_history.json'
         self.min_corpus_size = 5  # Minimum number of documents before external search
+        self.embedding_available = False
+        self.pdf_available = PyPDF2 is not None
+
+        if SentenceTransformer is not None:
+            try:
+                self.model = SentenceTransformer('all-MiniLM-L6-v2')
+                self.embedding_available = cosine_similarity is not None
+            except Exception as e:
+                logger.warning(f"Course embedding model unavailable: {e}")
+        else:
+            logger.warning("sentence_transformers not installed; using keyword search fallback")
         
         # Initialize Gemini AI
         try:
             # Use the same API key loading approach as views.py
             api_key = os.getenv('GEMINI_API_KEY')
-            if api_key and api_key != 'your_gemini_api_key_here' and 'EXAMPLEKEY' not in api_key:
+            if genai and api_key and api_key != 'your_gemini_api_key_here' and 'EXAMPLEKEY' not in api_key:
                 genai.configure(api_key=api_key)
                 self.ai_model = genai.GenerativeModel('gemini-2.5-flash')
                 logger.info("✅ Course AI service initialized successfully")
@@ -51,6 +74,9 @@ class CourseService:
     def extract_text_from_pdf(self, pdf_file) -> str:
         """Extract text content from uploaded PDF file"""
         try:
+            if PyPDF2 is None:
+                logger.warning("PyPDF2 not installed; cannot extract PDF content")
+                return ""
             if hasattr(pdf_file, 'read'):
                 pdf_content = pdf_file.read()
             else:
@@ -151,6 +177,10 @@ class CourseService:
     def generate_embeddings(self):
         """Generate vector embeddings for all corpus documents"""
         try:
+            if not self.embedding_available or self.model is None:
+                logger.info("Embeddings unavailable; skipping vector generation")
+                self.course_embeddings = np.array([])
+                return
             if not self.course_corpus:
                 self.course_embeddings = np.array([])
                 return
@@ -175,9 +205,9 @@ class CourseService:
     def search_course_content(self, query: str, top_k: int = 5) -> List[Dict]:
         """Search course content using vector similarity"""
         try:
-            if not self.course_corpus or self.course_embeddings is None or len(self.course_embeddings) == 0:
+            if not self.embedding_available or self.model is None or not self.course_corpus or self.course_embeddings is None or len(self.course_embeddings) == 0:
                 logger.info("📭 No course content available for search")
-                return []
+                return self._keyword_search_course_content(query, top_k)
             
             # Generate query embedding
             query_embedding = self.model.encode([query])
@@ -200,7 +230,7 @@ class CourseService:
             
         except Exception as e:
             logger.error(f"❌ Error searching course content: {e}")
-            return []
+            return self._keyword_search_course_content(query, top_k)
     
     def should_search_external(self, query: str, local_results: List[Dict]) -> bool:
         """Determine if external search is needed based on corpus size and relevance"""
@@ -218,6 +248,27 @@ class CourseService:
             return True
         
         return False
+
+    def _keyword_search_course_content(self, query: str, top_k: int = 5) -> List[Dict]:
+        """Fallback search when embedding dependencies are unavailable."""
+        if not self.course_corpus:
+            logger.info("No course content available for keyword search")
+            return []
+
+        query_words = [word for word in query.lower().split() if len(word) > 2]
+        scored_results = []
+
+        for doc in self.course_corpus:
+            content = doc.get('content', '').lower()
+            score = sum(content.count(word) for word in query_words)
+            if score > 0:
+                item = doc.copy()
+                item['similarity'] = min(score / max(len(query_words), 1), 1.0)
+                scored_results.append(item)
+
+        scored_results.sort(key=lambda item: item.get('similarity', 0), reverse=True)
+        logger.info(f"Keyword search found {len(scored_results[:top_k])} relevant course documents")
+        return scored_results[:top_k]
     
     def get_response(self, query: str, request_external: bool = False) -> Dict[str, Any]:
         """Get course-focused response with option for external search"""
@@ -257,7 +308,7 @@ class CourseService:
                 response = self.ai_model.generate_content(user_prompt)
                 ai_response = response.text
             else:
-                ai_response = "I'm currently unable to process your educational query. Please check the AI service configuration."
+                ai_response = self._build_fallback_response(local_results, needs_external)
             
             # Build response object
             response_data = {
@@ -355,8 +406,31 @@ class CourseService:
             'total_documents': total_chunks,
             'courses': courses,
             'conversation_history': len(self.conversation_history),
-            'embeddings_available': self.course_embeddings is not None and len(self.course_embeddings) > 0
+            'embeddings_available': self.course_embeddings is not None and len(self.course_embeddings) > 0,
+            'embedding_backend_available': self.embedding_available,
+            'pdf_support_available': self.pdf_available,
+            'ai_available': self.ai_model is not None
         }
+
+    def _build_fallback_response(self, local_results: List[Dict], needs_external: bool) -> str:
+        """Build a useful non-AI response from local course content."""
+        if local_results:
+            snippets = []
+            for result in local_results[:3]:
+                course_name = result.get('course_name', 'Course Material')
+                preview = result.get('content', '')[:220].strip()
+                snippets.append(f"{course_name}: {preview}")
+
+            response = "I couldn't use the AI course model, but I found relevant material in your local course content.\n\n"
+            response += "\n\n".join(snippets)
+            if needs_external:
+                response += "\n\nYour local course corpus may be limited for this question, so external resources may still help."
+            return response
+
+        return (
+            "The course service is running, but some AI or search dependencies are unavailable right now. "
+            "I couldn't find matching local course material for this question."
+        )
     
     def save_corpus(self):
         """Save course corpus to file"""

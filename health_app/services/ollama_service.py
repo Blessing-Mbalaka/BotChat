@@ -12,6 +12,7 @@ from typing import Dict, Any, Optional
 from .bot_config import BotConfigManager
 
 logger = logging.getLogger(__name__)
+DEFAULT_OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'ministral-3:3b')
 
 
 def get_system_resources() -> Dict[str, Any]:
@@ -56,7 +57,7 @@ class OllamaService:
         Initialize Ollama service
         
         Args:
-            model: Ollama model name (default: auto-detect from available models)
+            model: Ollama model name (default: local configured model or auto-detect)
             base_url: Base URL of Ollama server (default: localhost:11434)
         """
         self.base_url = base_url
@@ -67,14 +68,17 @@ class OllamaService:
             if not model:
                 available_models = self.get_available_models(base_url)
                 if available_models:
-                    model = self._select_best_model(available_models)
+                    if DEFAULT_OLLAMA_MODEL in available_models:
+                        model = DEFAULT_OLLAMA_MODEL
+                    else:
+                        model = self._select_best_model(available_models)
                 else:
-                    model = 'mistral'  # Fallback default
+                    model = DEFAULT_OLLAMA_MODEL
             
             self.model = model
             logger.info(f"✅ Ollama service initialized with model: {model}")
         else:
-            self.model = model or 'mistral'
+            self.model = model or DEFAULT_OLLAMA_MODEL
             logger.warning(f"⚠️ Ollama not available at {base_url}")
     
     def _check_availability(self) -> bool:
@@ -89,7 +93,7 @@ class OllamaService:
     def _select_best_model(self, available_models: list) -> str:
         """Select the best model from available list"""
         # Prefer fast, reliable models
-        fast_models = ['phi3:mini', 'phi3:2.7b', 'mistral', 'neural-chat', 'tinyllama']
+        fast_models = [DEFAULT_OLLAMA_MODEL, 'phi3:mini', 'phi3:2.7b', 'mistral', 'neural-chat', 'tinyllama']
         slow_models = ['gemma3:33b', 'llama2:70b', 'neural-chat:13b']
         
         # Skip very slow models
@@ -113,7 +117,7 @@ class OllamaService:
             logger.warning(f"Using available model: {available_models[0]}")
             return available_models[0]
         
-        return 'mistral'
+        return DEFAULT_OLLAMA_MODEL
     
     def generate_response(self, user_message: str) -> Dict[str, Any]:
         """
@@ -312,7 +316,7 @@ class OllamaService:
             return []
 
 
-def create_ollama_service(model: str = 'mistral') -> Optional[OllamaService]:
+def create_ollama_service(model: str = DEFAULT_OLLAMA_MODEL) -> Optional[OllamaService]:
     """
     Factory function to create Ollama service if available
     
