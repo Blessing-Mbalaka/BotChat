@@ -107,6 +107,26 @@ def chatbot_view(request):
     """Render the main chatbot interface"""
     return render(request, 'health_app/chatbot.html')
 
+
+def _strip_medical_disclaimer(text):
+    """Remove legacy disclaimer text from outbound health responses."""
+    if not text:
+        return text
+
+    removals = [
+        "💡 **Medical Disclaimer**: For professional medical advice, consult a healthcare provider.",
+        "💡 **Important**: This information is for educational purposes only. Always consult with healthcare professionals for personalized medical advice.",
+        "💡 **Remember**: Always consult healthcare professionals for medical advice.",
+        "💡 **Disclaimer**: Educational information only, not medical advice.",
+        "⚠️ **Important:** Always consult healthcare professionals for personalized medical advice.",
+    ]
+
+    cleaned = text
+    for item in removals:
+        cleaned = cleaned.replace(item, "")
+
+    return cleaned.strip()
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def extract_api(request):
@@ -221,6 +241,7 @@ def chat_api(request):
         # Debug: Log the response structure
         logger.info(f"📝 Response structure: message length={len(response_data.get('message', ''))}, visualizations={len(response_data.get('visualizations', []))}")
         
+        response_data['message'] = _strip_medical_disclaimer(response_data.get('message', ''))
         return JsonResponse({
             'success': True,
             'message': response_data.get('message', ''),
@@ -289,7 +310,7 @@ def generate_ai_response(user_message, extracted_tables=None):
                     final_message += f"\n\n---\n\n{web_response}"
         
         return {
-            'message': final_message,
+            'message': _strip_medical_disclaimer(final_message),
             'visualizations': processed_visualizations
         }
         
@@ -420,6 +441,7 @@ def generate_ai_response_content(user_message, table_context=""):
             # Get message and visualizations
             message = parsed.get('message', '').strip()
             visualizations = parsed.get('visualizations', []) or []
+            message = message.replace("💡 **Medical Disclaimer**: For professional medical advice, consult a healthcare provider.", "").strip()
             
             # Ensure visualizations is a list
             if not isinstance(visualizations, list):
