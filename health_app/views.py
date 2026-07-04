@@ -109,7 +109,7 @@ def chatbot_view(request):
 
 
 def _strip_medical_disclaimer(text):
-    """Remove legacy disclaimer text from outbound health responses."""
+    """Remove legacy medical disclaimer text from outbound responses."""
     if not text:
         return text
 
@@ -126,6 +126,17 @@ def _strip_medical_disclaimer(text):
         cleaned = cleaned.replace(item, "")
 
     return cleaned.strip()
+
+
+def _append_general_ai_disclaimer(text):
+    """Append a neutral AI disclaimer once."""
+    disclaimer = "AI Disclaimer: Responses may be inaccurate or incomplete. Please verify important information."
+    cleaned = _strip_medical_disclaimer(text or "")
+    if not cleaned:
+        return disclaimer
+    if disclaimer in cleaned:
+        return cleaned
+    return f"{cleaned}\n\n{disclaimer}"
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -241,7 +252,7 @@ def chat_api(request):
         # Debug: Log the response structure
         logger.info(f"📝 Response structure: message length={len(response_data.get('message', ''))}, visualizations={len(response_data.get('visualizations', []))}")
         
-        response_data['message'] = _strip_medical_disclaimer(response_data.get('message', ''))
+        response_data['message'] = _append_general_ai_disclaimer(response_data.get('message', ''))
         return JsonResponse({
             'success': True,
             'message': response_data.get('message', ''),
@@ -310,7 +321,7 @@ def generate_ai_response(user_message, extracted_tables=None):
                     final_message += f"\n\n---\n\n{web_response}"
         
         return {
-            'message': _strip_medical_disclaimer(final_message),
+            'message': _append_general_ai_disclaimer(final_message),
             'visualizations': processed_visualizations
         }
         
@@ -873,6 +884,7 @@ def course_chat_api(request):
         # Debug: Log the response structure
         logger.info(f"📝 Course response: message length={len(response_text)}, visualizations={len(visualizations)}")
         
+        response_text = _append_general_ai_disclaimer(response_text)
         return JsonResponse({
             'success': True,
             'response': response_text,

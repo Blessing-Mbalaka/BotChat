@@ -262,7 +262,7 @@ Keep responses SHORT and helpful. Always respond with valid JSON."""
 
 # ==================== PREDEFINED CONFIGURATIONS ====================
 
-# Health-focused configuration (default)
+# Health-focused configuration
 HEALTH_BOT_CONFIG = BotConfig(
     name='health',
     description='Health-focused assistant for medical and wellness questions',
@@ -384,8 +384,8 @@ def initialize_default_configs():
     BotConfigManager.register_config(FLEXIBLE_COURSEBOT_CONFIG)
     BotConfigManager.register_config(BUSINESS_SCHOOL_ANALYST_CONFIG)
     
-    # Set health as default
-    BotConfigManager.set_active_config('health')
+    # Set course-focused assistant as default
+    BotConfigManager.set_active_config('flexible-coursebot')
     logger.info("✅ Initialized default bot configurations")
 
 
